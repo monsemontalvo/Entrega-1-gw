@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AXOLOTL FLY</title>
+  <link href="https://fonts.googleapis.com/css2?family=Joti+One&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="index.css">
+</head>
+
+<audio id="menuMusic" src="music/menu-music.mp3" autoplay loop preload="auto"></audio>
+<script src="menu-music.js"></script>
+
+<body>
+  <h1 class="logo" data-i18n="main_title"></h1>
+
+  <div class="menu-botones">
+    <button onclick="window.location.href='modoJuego.html'" data-i18n="btn_play"></button>
+    <button onclick="abrirModal('configModal')" data-i18n="btn_config"></button>
+    <button onclick="abrirModal('scoreModal')" data-i18n="btn_scores"></button>
+  </div>
+
+  <div id="configModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="cerrarModal('configModal')">&times;</span>
+      <h2 data-i18n="config_title"></h2>
+
+      <div class="setting-row">
+        <label for="volumenSlider" data-i18n="config_volume"></label>
+        <input type="range" id="volumenSlider" min="0" max="100" value="50">
+      </div>
+
+      <div class="setting-row">
+        <label for="sfxMuted" data-i18n="config_sfx"></label>
+        <input type="checkbox" id="sfxMuted">
+      </div>
+
+      <div class="setting-row">
+        <label for="invertY" data-i18n="config_invert_y"></label>
+        <input type="checkbox" id="invertY">
+      </div>
+
+      <div class="setting-row">
+        <label for="languageSelect" data-i18n="config_lang"></label>
+        <select id="languageSelect">
+          <option value="es">Español</option>
+          <option value="en">English</option>
+          <option value="fr">Français</option>
+          <option value="ko">한국어</option>
+          <option value="ja">日本語</option>
+        </select>
+      </div>
+
+    </div>
+  </div>
+
+  <div id="scoreModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="cerrarModal('scoreModal')">&times;</span>
+      <h2 data-i18n="scores_title"></h2>
+      <ul class="lista-puntuaciones">
+        <li>Persona Uno - 1500</li>
+        <li>Jugador Dos - 1200</li>
+        <li>Jugador Tres - 900</li>
+        <li>Jugador Cuatro - 850</li>
+      </ul>
+    </div>
+  </div>
+
+  <script src="index.js"></script>
+  <script src="i18n.js"></script>
+</body>
+
+</html>

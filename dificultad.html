@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Seleccione la Dificultad</title>
+  <link href="https://fonts.googleapis.com/css2?family=Joti+One&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="dificultad.css">
+</head>
+
+<audio id="menuMusic" src="music/menu-music.mp3" autoplay loop preload="auto"></audio>
+<script src="menu-music.js"></script>
+
+<body>
+  <div class="contenedor">
+    <h1 class="titulo" data-i18n="difficulty_title"></h1>
+    <div class="botones">
+      <button class="dif-btn" id="facil" data-i18n="difficulty_easy"></button>
+      <button class="dif-btn" id="dificil" data-i18n="difficulty_hard"></button>
+    </div>
+  </div>
+
+  <script src="dificultad.js"></script>
+  <script src="i18n.js"></script>
+</body>
+</html>

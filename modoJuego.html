@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Modo de Juego</title>
+  <link rel="stylesheet" href="modoJuego.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Joti+One&display=swap" rel="stylesheet">
+</head>
+
+<audio id="menuMusic" src="music/menu-music.mp3" autoplay loop preload="auto"></audio>
+<script src="menu-music.js"></script>
+
+<body>
+  <div class="contenedor">
+    <h1 class="titulo" data-i18n="mode_title"></h1>
+    <div class="map-container">
+      <div class="map-btn" id="modoLocal" onclick="window.location.href='dificultad.html?modo=local'">
+        <div class="map-label" data-i18n="mode_local"></div>
+      </div>
+      <div class="map-btn" id="modoEnLinea" onclick="window.location.href='ingresarnombre.html'">
+        <div class="map-label" data-i18n="mode_online"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="i18n.js"></script>
+</body>
+</html>

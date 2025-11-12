@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Selecciona el Mapa</title>
+  <link rel="stylesheet" href="mapas.css">
+</head>
+
+<audio id="menuMusic" src="music/menu-music.mp3" autoplay loop preload="auto"></audio>
+<script src="menu-music.js"></script>
+
+<body>
+  <div class="contenedor">
+    <h1 class="titulo" data-i18n="map_title"></h1>
+    <div class="map-container">
+      <button class="map-btn" id="mapa1">
+        <span class="map-label" data-i18n="map_desert"></span>
+      </button>
+      <button class="map-btn" id="mapa2">
+        <span class="map-label" data-i18n="map_forest"></span>
+      </button>
+      <button class="map-btn" id="mapa3">
+        <span class="map-label" data-i18n="map_snow"></span>
+      </button>
+    </div>
+  </div>
+
+  <script src="mapas.js"></script>
+  <script src="i18n.js"></script>
+</body>
+</html>

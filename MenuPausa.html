@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Juego con Pausa</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Joti+One&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="MenuPausa.css">
+
+  <script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@v0.155.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.155.0/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+
+<body>
+  <canvas id="gameCanvas"></canvas>
+
+  <audio id="countdownSound" src="music/countdown.mp3" preload="auto"></audio>
+  <audio id="gameMusic" src="music/game-music.mp3" loop preload="auto"></audio>
+  <audio id="collisionSound" src="music/collision.mp3" preload="auto"></audio>
+  <audio id="coinSound" src="music/coin.mp3" preload="auto"></audio>
+
+
+  <div id="vidasContainer">
+  </div>
+  <div id="fuelContainer">
+    <div id="fuelBar"></div>
+  </div>
+
+  <div id="gameOverScreen" class="overlay hidden">
+    <div class="menu-box">
+      <h1 id="gameOverMessage"></h1>
+      <button id="restartBtn" class="menu-btn" data-i18n="game_restart"></button>
+      <button id="exitBtnGameOver" class="menu-btn" data-i18n="game_exit"></button>
+    </div>
+  </div>
+  <div id="waitingOverlay" class="overlay hidden">
+    <div class="despegando-box">
+      <div class="nubes">
+        <img src="Nube.png" class="nube nube1" alt="nube">
+        <img src="Nube.png" class="nube nube2" alt="nube">
+        <img src="Nube.png" class="nube nube3" alt="nube">
+      </div>
+      <h1 data-i18n="game_waiting"></h1>
+    </div>
+  </div>
+
+  <div id="player1Score" class="score-display score-left hidden">
+    <img src="coin.png" alt="Moneda">
+    <span>0</span>
+  </div>
+  <div id="player2Score" class="score-display score-right hidden">
+    <img src="coin.png" alt="Moneda">
+    <span>0</span>
+  </div>
+  <div id="countdownOverlay" class="overlay hidden">
+    <h1 id="countdownText">3</h1>
+  </div>
+
+  <div id="pauseMenu" class="overlay hidden">
+    <div class="menu-box">
+      <h2 data-i18n="game_pause_title"></h2>
+
+      <div class="setting-row-pause">
+        <label for="pauseVolumenSlider" data-i18n="config_volume"></label>
+        <input type="range" id="pauseVolumenSlider" min="0" max="100">
+      </div>
+      <button id="resumeBtn" class="menu-btn" data-i18n="game_resume"></button>
+      <br>
+      <button id="exitBtn" class="menu-btn" data-i18n="game_exit"></button>
+    </div>
+  </div>
+
+  <div id="instructions">
+    <span id="closeInstructions" class="close">&times;</span>
+    <h2 data-i18n="game_instructions_title"></h2>
+
+    <div id="instructions_local" class="hidden">
+      <p data-i18n="game_instructions_desc"></p>
+      <ul>
+        <li data-i18n="game_instructions_keys_1"></li>
+        <li data-i18n="game_instructions_keys_2"></li>
+      </ul>
+      <p data-i18n="game_instructions_tip_1"></p>
+    </div>
+    
+    <div id="instructions_online" class="hidden">
+      <p data-i18n="game_instructions_full_online"></p>
+      <ul>
+        <li data-i18n="game_instructions_keys_1"></li>
+        <li data-i18n="game_instructions_keys_2"></li>
+      </ul>
+    </div>
+
+    <p data-i18n="game_instructions_tip_2"></p>
+  </div>
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+
+  <script src="i18n.js"></script>
+  <script type="module" src="MenuPausa.js"></script>
+</body>
+
+</html>

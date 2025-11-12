@@ -1,0 +1,50 @@
+body {
+  font-family: "Joti One", serif;
+  font-weight: 400;
+  font-style: normal;
+  margin: 0;
+  padding: 0;
+  background: linear-gradient(to bottom, #58a7e2, #cde7fe); /* cielo */
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  
+}
+
+.contenedor {
+  text-align: center;
+  position: relative;
+}
+
+/* Contenedor de las nubes */
+.nubes {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 60px;
+  margin-bottom: 30px;
+}
+
+.nube {
+  width: 300px;
+  opacity: 1;
+  animation: flotando 4s ease-in-out infinite;
+}
+
+/* Diferentes retrasos para que no suban y bajen a la vez */
+.nube1 { animation-delay: 0s; }
+.nube2 { animation-delay: 1s; }
+.nube3 { animation-delay: 2s; }
+
+@keyframes flotando {
+  0%   { transform: translateY(0); }
+  50%  { transform: translateY(-30px); }
+  100% { transform: translateY(0); }
+}
+
+h1 {
+  font-size: 3rem;
+  color: #fff;
+   text-shadow: 3px 3px #000;
+}
