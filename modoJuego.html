@@ -15,15 +15,42 @@
   <div class="contenedor">
     <h1 class="titulo" data-i18n="mode_title"></h1>
     <div class="map-container">
+      
       <div class="map-btn" id="modoLocal" onclick="window.location.href='dificultad.html?modo=local'">
         <div class="map-label" data-i18n="mode_local"></div>
       </div>
-      <div class="map-btn" id="modoEnLinea" onclick="window.location.href='ingresarnombre.html'">
+      
+      <div class="map-btn" id="modoEnLinea" onclick="irModoOnline()">
         <div class="map-label" data-i18n="mode_online"></div>
       </div>
-    </div>
+      </div>
   </div>
 
   <script src="i18n.js"></script>
+  
+  <script>
+    function irModoOnline() {
+      // Revisar si el usuario se logueó con Facebook
+      const fbID = localStorage.getItem('playerFBID');
+      const fbName = localStorage.getItem('playerName');
+
+      if (fbID && fbName) {
+        // --- RUTA 1: USUARIO DE FACEBOOK ---
+        // Sí está logueado con FB.
+        // Lo mandamos directo a 'dificultad', saltando 'ingresarnombre.html'
+        // Le pasamos el nombre de FB.
+        console.log('Usuario de Facebook detectado:', fbName);
+        const url = `dificultad.html?modo=online&nombre=${encodeURIComponent(fbName)}`;
+        window.location.href = url;
+        
+      } else {
+        // --- RUTA 2: USUARIO INVITADO (GUEST) ---
+        // No está logueado con FB.
+        // Lo mandamos al flujo normal de "invitado"
+        console.log('No hay usuario de Facebook. Yendo a ingresar nombre.');
+        window.location.href = 'ingresarnombre.html';
+      }
+    }
+  </script>
 </body>
 </html>

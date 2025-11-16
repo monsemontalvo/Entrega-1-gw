@@ -43,5 +43,7 @@
   "game_over_online_death": "¡{winner} GANA! Oponente eliminado.",
   "game_over_online_score": "¡{winner} GANA POR MONEDAS!",
   "game_over_online_disconnect": "¡{winner} GANA! Oponente desconectado.",
-  "game_over_online_tie": "¡ES UN EMPATE!"
+  "game_over_online_tie": "¡ES UN EMPATE!",
+  "btn_login_fb": "Iniciar con Facebook",
+  "btn_logout_fb": "Cerrar sesión ({name})"
 }

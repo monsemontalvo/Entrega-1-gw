@@ -43,5 +43,7 @@
   "game_over_online_death": "{winner}の勝利！(相手が脱落)",
   "game_over_online_score": "{winner}の勝利！(コイン数)",
   "game_over_online_disconnect": "{winner}の勝利！(相手が切断)",
-  "game_over_online_tie": "引き分けです！"
+  "game_over_online_tie": "引き分けです！",
+  "btn_login_fb": "フェイスブックでログイン",
+  "btn_logout_fb": "ログアウト ({name})"
 }

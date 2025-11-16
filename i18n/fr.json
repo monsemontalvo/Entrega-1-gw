@@ -43,5 +43,7 @@
   "game_over_online_death": "{winner} GAGNE ! Adversaire éliminé.",
   "game_over_online_score": "{winner} GAGNE AUX PIÈCES !",
   "game_over_online_disconnect": "{winner} GAGNE ! Adversaire déconnecté.",
-  "game_over_online_tie": "ÉGALITÉ !"
+  "game_over_online_tie": "ÉGALITÉ !",
+  "btn_login_fb": "Se connecter avec Facebook",
+  "btn_logout_fb": "Se déconnecter ({name})"
 }

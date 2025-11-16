@@ -43,5 +43,7 @@
   "game_over_online_death": "{winner} WINS! Opponent eliminated.",
   "game_over_online_score": "{winner} WINS BY COINS!",
   "game_over_online_disconnect": "{winner} WINS! Opponent disconnected.",
-  "game_over_online_tie": "IT'S A TIE!"
+  "game_over_online_tie": "IT'S A TIE!",
+  "btn_login_fb": "Login with Facebook",
+  "btn_logout_fb": "Logout ({name})"
 }

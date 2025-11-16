@@ -13,12 +13,17 @@
 <script src="menu-music.js"></script>
 
 <body>
+  <div id="fb-root"></div>
+  <script async defer crossOrigin="anonymous" src="https://connect.facebook.net/es_LA/sdk.js"></script>
+
   <h1 class="logo" data-i18n="main_title"></h1>
 
   <div class="menu-botones">
     <button onclick="window.location.href='modoJuego.html'" data-i18n="btn_play"></button>
     <button onclick="abrirModal('configModal')" data-i18n="btn_config"></button>
     <button onclick="abrirModal('scoreModal')" data-i18n="btn_scores"></button>
+
+    <button id="fbLoginBtn" data-i18n="btn_login_fb"></button>
   </div>
 
   <div id="configModal" class="modal">

@@ -43,5 +43,7 @@
   "game_over_online_death": "{winner} 승리! (상대방 탈락)",
   "game_over_online_score": "{winner} 승리! (코인)",
   "game_over_online_disconnect": "{winner} 승리! (상대방 연결 끊김)",
-  "game_over_online_tie": "무승부입니다!"
-} 
+  "game_over_online_tie": "무승부입니다!",
+  "btn_login_fb": "페이스북으로 로그인",
+  "btn_logout_fb": "로그아웃 ({name})"
+}
