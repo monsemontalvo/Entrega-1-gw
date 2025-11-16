@@ -37,7 +37,7 @@
   "game_over_lose_life": "VOUS AVEZ TUÉ L'AXOLOTL",
   "game_over_lose_fuel": "VOUS N'AVEZ PLUS DE CARBURANT",
   "game_restart": "Recommencer",
-  "game_waiting": "En attente du deuxième joueur...",
+  "game_waiting": "Décollage...",
   "game_instructions_full_online": "Affrontez un autre joueur ! Atteignez l'objectif avant lui. Collectez des pièces pour marquer des points. Si vous atteignez tous les deux la fin, le joueur avec le plus de pièces gagne ! Attention ! Si vous perdez toutes vos vies ou votre carburant, votre adversaire gagne automatiquement.",
   "game_over_online_win": "{winner} GAGNE !",
   "game_over_online_death": "{winner} GAGNE ! Adversaire éliminé.",

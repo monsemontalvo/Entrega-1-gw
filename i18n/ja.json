@@ -37,7 +37,7 @@
   "game_over_lose_life": "アホロートルがやられました",
   "game_over_lose_fuel": "燃料がなくなりました",
   "game_restart": "リスタート",
-  "game_waiting": "2人目のプレイヤーを待っています...",
+  "game_waiting": "離陸...",
   "game_instructions_full_online": "他のプレイヤーと競争しましょう！相手より先にゴールに到達してください。コインを集めてポイントを獲得します。両方がゴールした場合、最も多くコインを持っているプレイヤーが勝ちます！注意！全てのライフまたは燃料を失うと、相手が自動的に勝利します。",
   "game_over_online_win": "{winner}の勝利！",
   "game_over_online_death": "{winner}の勝利！(相手が脱落)",

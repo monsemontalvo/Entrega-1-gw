@@ -37,7 +37,7 @@
   "game_over_lose_life": "YOU KILLED THE AXOLOTL",
   "game_over_lose_fuel": "YOU RAN OUT OF FUEL",
   "game_restart": "Restart",
-  "game_waiting": "Waiting for second player...",
+  "game_waiting": "Taking off...",
   "game_instructions_full_online": "Compete against another player! Reach the goal before them. Collect coins to score points. If you both reach the finish, the player with the most coins wins! Be careful! If you lose all your lives or fuel, your opponent wins automatically.",
   "game_over_online_win": "{winner} WINS!",
   "game_over_online_death": "{winner} WINS! Opponent eliminated.",
