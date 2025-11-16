@@ -2,10 +2,27 @@ const express = require('express');
 const { createServer } = require('node:http');
 const { join } = require('node:path');
 const { Server } = require('socket.io');
+const mongoose = require('mongoose'); // <-- 1. IMPORTAR MONGOOSE
 
 const app = express();
 const server = createServer(app);
 const io = new Server(server);
+
+// --- 2. CONEXIÓN A MONGODB ---
+// (Asegúrate de tener MongoDB corriendo localmente)
+mongoose.connect('mongodb://localhost:27017/axolotlgame')
+  .then(() => console.log('Conectado a MongoDB...'))
+  .catch(err => console.error('No se pudo conectar a MongoDB...', err));
+
+// --- 3. MODELO DE PUNTUACIÓN ---
+// Define cómo se guardarán los datos en la colección 'scores'
+const Score = mongoose.model('Score', new mongoose.Schema({
+    playerName: String,
+    score: Number,
+    date: { type: Date, default: Date.now }
+}));
+// --- FIN DE NUEVO CÓDIGO ---
+
 
 // Almacén de jugadores. Usaremos un Objeto para acceso rápido por ID
 const players = {}; 
@@ -77,6 +94,53 @@ function resetGameState() {
 }
 // --- Fin Helpers ---
 
+// --- 4. NUEVA FUNCIÓN PARA GUARDAR PUNTUACIONES ---
+// Esta función reemplazará la lógica de "GameOver"
+async function saveGameScores(reason) {
+    // Evitar guardado doble si el juego ya terminó
+    if (gameState !== 'playing') return; 
+    
+    console.log(`Guardando scores, razón: ${reason}`);
+    gameState = 'finished';
+    if (coinSpawnTimer) clearInterval(coinSpawnTimer);
+    
+    const scores = getScores();
+    if (scores.length === 0) {
+      console.log("No hay scores para guardar.");
+      // Aún si no hay scores, reseteamos para la próxima
+      resetGameState(); 
+      return;
+    }
+
+    // Guardar todas las puntuaciones de esta partida en la DB
+    try {
+        const scoreDocs = scores.map(s => ({
+            playerName: s.name,
+            score: s.score
+        }));
+        await Score.insertMany(scoreDocs);
+        console.log('Puntuaciones guardadas en DB:', scoreDocs);
+    } catch (err) {
+        console.error('Error al guardar puntuaciones en DB:', err);
+    }
+
+    // Determinar ganador (lógica que ya tenías)
+    let winnerName = "EMPATE";
+    if (scores.length === 2) {
+        if (scores[0].score > scores[1].score) winnerName = scores[0].name;
+        else if (scores[1].score > scores[0].score) winnerName = scores[1].name;
+    } else if (scores.length === 1) {
+        winnerName = scores[0].name; // Gana por default
+    }
+
+    // Notificar a los clientes
+    io.emit('GameOver', { winner: winnerName, reason: reason });
+    
+    // Resetear estado para la próxima partida
+    resetGameState();
+}
+// --- FIN DE NUEVA FUNCIÓN ---
+
 
 app.use(express.static(join(__dirname, '')));
 app.use('/models', express.static(join(__dirname, 'models')));
@@ -85,6 +149,22 @@ app.get('/', (req, res) => {
   res.sendFile(join(__dirname, 'index.html'));
 });
 
+// --- 5. RUTA PARA OBTENER PUNTUACIONES ---
+// Agrega esto ANTES de io.on('connection')
+app.get('/getHighScores', async (req, res) => {
+    try {
+        const highScores = await Score.find()  // Busca en la colección
+                                    .sort({ score: -1 }) // Ordena: más alto primero
+                                    .limit(10)            // Trae solo los 10 mejores
+                                    .exec();
+        res.json(highScores);
+    } catch (err) {
+        console.error('Error al obtener puntuaciones:', err);
+        res.status(500).json({ error: 'Error al obtener puntuaciones' });
+    }
+});
+// --- FIN DE NUEVA RUTA ---
+
 // ===================================
 // NUEVO CAMBIO: LÓGICA DE INICIO Y SPAWN
 // ===================================
@@ -92,8 +172,19 @@ function startGame() {
     if (gameState === 'playing') return; // Evitar doble inicio
     
     console.log("--- INICIANDO JUEGO ---");
-    resetGameState(); // Asegurar que todo esté limpio
+    // resetGameState() AHORA SE LLAMA DESDE saveGameScores() o al desconectar
+    // Aquí solo ajustamos el estado
     gameState = 'playing';
+    coinsSpawnedCount = 0;
+    coinsCollectedCount = 0;
+    activeCoins = {};
+    if (coinSpawnTimer) clearInterval(coinSpawnTimer);
+
+    // Resetear scores de jugadores en memoria
+    Object.values(players).forEach(p => {
+        p.score = 0;
+        p.status = 'playing';
+    });
 
     // Notificar a los clientes que la cuenta regresiva empieza
     io.emit('StartCountdown');
@@ -153,8 +244,8 @@ io.on('connection', (socket) => {
   console.log('User connected:', socket.id);
 
   socket.on('Iniciar', (nombre) => {
-    // NUEVO CAMBIO: Permitir reconexión si el juego terminó, pero no si está lleno
-    if (getPlayerCount() >= 2 && gameState === 'playing') {
+    // Si el juego está en marcha (playing), no dejar entrar
+    if (gameState === 'playing' || getPlayerCount() >= 2) {
       socket.emit('JuegoLleno');
       return;
     }
@@ -169,7 +260,7 @@ io.on('connection', (socket) => {
       modelIndex: modelIndex,
       score: 0,
       ready: false,
-      status: 'playing' // playing, finished
+      status: 'waiting' // 'waiting' o 'playing'
     };
     
     console.log('Jugador iniciado:', players[socket.id].name);
@@ -239,23 +330,9 @@ io.on('connection', (socket) => {
       // --- CHEQUEO DE FIN DE PARTIDA ---
       if (coinsCollectedCount >= TOTAL_COINS) {
         console.log("--- JUEGO TERMINADO: MONEDAS RECOLECTADAS ---");
-        gameState = 'finished';
-        if (coinSpawnTimer) clearInterval(coinSpawnTimer);
-        
-        const scores = getScores();
-        let winnerName = "EMPATE";
-        
-        if (scores.length === 2) {
-            if (scores[0].score > scores[1].score) {
-                winnerName = scores[0].name;
-            } else if (scores[1].score > scores[0].score) {
-                winnerName = scores[1].name;
-            }
-        } else if (scores.length === 1) {
-            winnerName = scores[0].name; // Gana por default si está solo
-        }
-
-        io.emit('GameOver', { winner: winnerName, reason: 'coins_finished' });
+        // ANTES: Lógica de GameOver aquí
+        // AHORA: Llamar a la función de guardado
+        saveGameScores('coins_finished');
       }
     }
   });
@@ -276,10 +353,6 @@ io.on('connection', (socket) => {
     }
   });
 
-  // --- LÓGICA ANTIGUA (ELIMINADA) ---
-  // socket.on('PlayerLost', ...)
-  // socket.on('PlayerFinished', ...)
-
   // ===================================
   // MANEJO DE DESCONEXIÓN
   // ===================================
@@ -296,9 +369,9 @@ io.on('connection', (socket) => {
       // NUEVO CAMBIO: Si el juego estaba en curso y uno se va, el otro gana
       if (remainingPlayer && gameState === 'playing') { 
         console.log("Jugador desconectado en plena partida. El otro gana.");
-        io.emit('GameOver', { winner: remainingPlayer.name, reason: 'disconnect' });
-        // Resetear el estado para la próxima
-        resetGameState(); 
+        // ANTES: io.emit('GameOver', ...)
+        // AHORA: Llamar a la función de guardado
+        saveGameScores('disconnect');
       }
       
       // Notificar a todos que un jugador se fue (para UI)

@@ -1,8 +1,14 @@
 // --- Funciones del Modal ---
 function abrirModal(id) {
   document.getElementById(id).style.display = "flex";
+  
   if (id === 'configModal') {
     cargarConfiguracion();
+  }
+  // --- 1. MODIFICACIÓN ---
+  // Si abrimos el modal de scores, cargamos los datos
+  if (id === 'scoreModal') {
+    cargarPuntuaciones();
   }
 }
 
@@ -10,34 +16,62 @@ function cerrarModal(id) {
   document.getElementById(id).style.display = "none";
 }
 
-// --- Lógica de Configuración ---
+// --- 2. NUEVA FUNCIÓN ---
+// Esta función buscará los scores en el servidor
+async function cargarPuntuaciones() {
+    const listaUl = document.querySelector('#scoreModal .lista-puntuaciones');
+    if (!listaUl) return;
 
-// Referencias a los elementos
+    listaUl.innerHTML = '<li>Cargando...</li>'; // Feedback para el usuario
+
+    try {
+        // Hacemos un fetch a la ruta que creamos en server.js
+        const response = await fetch('/getHighScores');
+        if (!response.ok) {
+            throw new Error('No se pudo conectar al servidor');
+        }
+        
+        const scores = await response.json();
+
+        if (scores.length === 0) {
+            listaUl.innerHTML = '<li>No hay puntuaciones todavía. ¡Juega una partida!</li>';
+            return;
+        }
+
+        // Limpiar la lista y poblarla con los datos reales
+        listaUl.innerHTML = '';
+        scores.forEach(score => {
+            const li = document.createElement('li');
+            li.textContent = `${score.playerName} - ${score.score}`;
+            listaUl.appendChild(li);
+        });
+
+    } catch (error) {
+        console.error('Error al cargar puntuaciones:', error);
+        listaUl.innerHTML = '<li>Error al cargar las puntuaciones.</li>';
+    }
+}
+// --- FIN DE NUEVA FUNCIÓN ---
+
+
+// --- Lógica de Configuración (Tu código existente) ---
 const volumenSlider = document.getElementById('volumenSlider');
 const sfxMuted = document.getElementById('sfxMuted');
 const invertY = document.getElementById('invertY');
-const languageSelect = document.getElementById('languageSelect'); // NUEVO
+const languageSelect = document.getElementById('languageSelect');
 const menuMusic = document.getElementById('menuMusic'); 
 
-// 1. FUNCIÓN PARA CARGAR LA CONFIGURACIÓN GUARDADA
 function cargarConfiguracion() {
-  // Cargar Volumen
   const volGuardado = localStorage.getItem('gameVolume');
   const volFinal = volGuardado !== null ? parseFloat(volGuardado) : 0.5;
   volumenSlider.value = volFinal * 100;
   if(menuMusic) menuMusic.volume = volFinal;
 
-  // Cargar Mute SFX
   sfxMuted.checked = (localStorage.getItem('sfxMuted') === 'true');
-
-  // Cargar Invertir Y
   invertY.checked = (localStorage.getItem('invertY') === 'true');
-
-  // NUEVO: Cargar Idioma
   languageSelect.value = localStorage.getItem('language') || 'es';
 }
 
-// 2. EVENT LISTENERS PARA GUARDAR AL CAMBIAR
 volumenSlider.addEventListener('input', (e) => {
   const vol = e.target.value / 100;
   localStorage.setItem('gameVolume', vol);
@@ -52,11 +86,8 @@ invertY.addEventListener('change', (e) => {
   localStorage.setItem('invertY', e.target.checked);
 });
 
-// NUEVO: Listener para el Idioma
 languageSelect.addEventListener('change', (e) => {
   const lang = e.target.value;
   localStorage.setItem('language', lang);
-  
-  // Recargar la página para aplicar el nuevo idioma
   window.location.reload(); 
 });
