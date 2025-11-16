@@ -87,6 +87,7 @@ const jugadoresRemotos = {};
 let obstaculos = []; 
 // NUEVO CAMBIO: Almacén de monedas activas
 let activeCoins = {};
+let rain = null; // Variable para nuestro sistema de partículas de lluvia
 
 // Variables de Control (MODO LOCAL)
 const velocidadAvance = 0.2; // Solo local
@@ -162,11 +163,13 @@ if (gameMode === 'local') {
 } else {
     // --- Lógica de Modo Online ---
     //La dificultad no afecta la meta, solo spawneo
-    obstacleSpawnRate = (gameDifficulty === 'dificil') ? 0.025 : 0.015;
+    obstacleSpawnRate = (gameDifficulty === 'dificil') ? 0.07 : 0.03; //Spawneo más frecuente en difícil
 
-    spawnableModels.push(
-        { path: 'models/bomb', name: 'Bomb', scale: new THREE.Vector3(1, 1, 1), type: 'homing_obstacle' }
-    );
+    if (gameDifficulty === 'dificil') {
+        spawnableModels.push(
+            { path: 'models/bomb', name: 'Bomb', scale: new THREE.Vector3(3, 3, 3), type: 'homing_obstacle' }
+        );
+    }
     // Las monedas (coin) se manejarán por el servidor.
     
     player1ScoreUI.classList.remove('hidden');
@@ -222,6 +225,23 @@ function initThree() {
         skyboxPath + 'pz' + skyboxExt, skyboxPath + 'nz' + skyboxExt,
     ]);
     scene.background = texture;
+
+    // ================== INICIO MODIFICACIÓN: AÑADIR LLUVIA ==================
+    // Solo crear lluvia si estamos en el mapa de Bosque
+    if (gameMap === 'Bosque') {
+        if (gameMode === 'local') {
+            // En modo local, creamos una caja de lluvia que se moverá con el jugador.
+            // Límites: 200 de ancho (x), 100 de alto (y), 300 de profundo (z).
+            const rainBounds = new THREE.Vector3(200, 100, 300);
+            createRain(10000, rainBounds);
+        } else {
+            // En modo online, cubrimos toda la arena.
+            // Usamos el doble de los límites de la arena para asegurar que cubra todo.
+            const rainBounds = new THREE.Vector3(arenaBounds.x * 2, arenaBounds.y * 2, arenaBounds.z * 2);
+            createRain(15000, rainBounds);
+        }
+    }
+    // ================== FIN MODIFICACIÓN: AÑADIR LLUVIA ==================
 
     // ================== NUEVO: CONFIGURAR AGUA ==================
     waterTexture = textureLoader.load('models/water7.jpg');
@@ -400,6 +420,50 @@ function cargarItem(path, nombre, vectorEscala, posicion, tipo, uniqueId = null)
         );
     });
 }
+
+/**
+ * Crea un sistema de partículas de lluvia.
+ * @param {number} particleCount - Cuántas gotas de lluvia.
+ * @param {THREE.Vector3} bounds - Un vector (x, y, z) que define el TAMAÑO del área de lluvia.
+ */
+function createRain(particleCount, bounds) {
+    const particles = new THREE.BufferGeometry();
+    const positions = [];
+    const velocities = []; // Almacenaremos la velocidad de caída de cada gota
+
+    for (let i = 0; i < particleCount; i++) {
+        // Posición inicial aleatoria dentro de los límites (bounds)
+        positions.push(
+            (Math.random() - 0.5) * bounds.x, // x
+            Math.random() * bounds.y,         // y (empezar en cualquier lugar de la altura)
+            (Math.random() - 0.5) * bounds.z  // z
+        );
+
+        // Damos a cada gota una velocidad de caída ligeramente diferente
+        velocities.push(
+            0, // No se mueve en x
+            (Math.random() * 0.5 + 0.5) * 2, // Velocidad en Y (entre 1.0 y 2.0)
+            0  // No se mueve en z
+        );
+    }
+
+    particles.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+    particles.setAttribute('velocity', new THREE.Float32BufferAttribute(velocities, 3));
+
+    // El material para las partículas
+    const material = new THREE.PointsMaterial({
+        color: 0xaaaaaa,
+        size: 0.1,
+        transparent: true,
+        opacity: 0.7
+    });
+
+    rain = new THREE.Points(particles, material);
+    
+    // Lo hacemos un hijo de la escena
+    scene.add(rain);
+}
+
 // ===================================
 // LÓGICA SOCKET.IO / MULTIJUGADOR
 // ===================================
@@ -716,6 +780,40 @@ function animate() {
             }
         }
     }
+    
+    // ================== INICIO MODIFICACIÓN: ANIMAR LLUVIA ==================
+    if (rain) {
+        // 1. Mover la caja de lluvia con el jugador (SOLO MODO LOCAL)
+        if (gameMode === 'local' && objAxolote) {
+            // Centramos la caja de lluvia un poco delante del jugador
+            rain.position.z = objAxolote.position.z - 150;
+            rain.position.x = objAxolote.position.x;
+        }
+
+        // 2. Animar las gotas individuales
+        const positions = rain.geometry.attributes.position.array;
+        const velocities = rain.geometry.attributes.velocity.array;
+        const bounds = (gameMode === 'local') ? new THREE.Vector3(200, 100, 300) : new THREE.Vector3(arenaBounds.x * 2, arenaBounds.y * 2, arenaBounds.z * 2);
+        const halfY = bounds.y / 2;
+
+        for (let i = 0; i < positions.length; i += 3) {
+            // Obtener la velocidad de esta gota
+            const fallSpeed = velocities[i + 1];
+            
+            // Mover la gota hacia abajo
+            positions[i + 1] -= fallSpeed; // y
+
+            // Reciclar la gota si cae por debajo del "suelo" de la caja de lluvia
+            // (Usamos halfY porque el centro de la caja es (0,0,0))
+            if (positions[i + 1] < -halfY) {
+                positions[i + 1] = halfY; // Ponerla de nuevo arriba
+            }
+        }
+
+        // Importante: Notificar a Three.js que las posiciones han cambiado
+        rain.geometry.attributes.position.needsUpdate = true;
+    }
+    // ================== FIN MODIFICACIÓN: ANIMAR LLUVIA ==================
     
     renderer.render(scene, camera);
 }
