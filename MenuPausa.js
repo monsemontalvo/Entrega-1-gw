@@ -97,7 +97,7 @@ const LIMITE_Y_POS = 50;
 const LIMITE_Y_NEG = -30; 
 const obstacleSpawnZ = -150; 
 const BOMB_AGGRO_RANGE = 50; 
-const BOMB_HOMING_SPEED = 0.3; //Velocidad bomba 
+const BOMB_HOMING_SPEED = 0.2; //Velocidad bomba 
 const STOP_SPAWN_ZONE = 150;
 
 //Variables de Control (MODO ONLINE)
@@ -113,10 +113,9 @@ let distanciaRecorrida = 0;
 let gameOver = false;
 let maxFuel = 100;
 let fuel = maxFuel;
-const fuelDepletionRate = 0.01; 
-const fuelDepletionRateBoost = 0.05; // NUEVO CAMBIO: Gasto de boost
+const fuelDepletionRate = 0.05; // Gasto de combustible normal
+const fuelDepletionRateBoost = 0.07; // Gasto de combustible con turbo
 const fuelRefillAmount = 30; 
-let localCoinScore = 0; // Para el conteo local de monedas (solo local)
 
 // ===================================
 // LÓGICA DE DIFICULTAD Y SPAWNEO
@@ -202,43 +201,71 @@ function initThree() {
     
     camera.position.z = 5; 
 
-    // Definir ruta del mapa
+    // Definir ruta del mapa Y ruta del skybox
     let mapModelPath = 'models/desierto'; // Default
-    if (gameMap === 'Bosque') mapModelPath = 'models/bosque';
-    else if (gameMap === 'Montañas Nevadas') mapModelPath = 'models/nieve';
+    let skyboxPath = 'skybox/'; // Default (para Desierto)
+
+    if (gameMap === 'Bosque') {
+        mapModelPath = 'models/bosque';
+        skyboxPath = 'skybox/bosque/'; // <-- NUEVO
+    } else if (gameMap === 'Montañas Nevadas') {
+        mapModelPath = 'models/nieve';
+        skyboxPath = 'skybox/nieve/'; // <-- NUEVO
+    }
+
+    // Cargar el Skybox (Ahora se hace una sola vez, ANTES del if/else de modo)
+    const skyboxExt = '.png';
+    const cubeTextureLoader = new THREE.CubeTextureLoader();
+    const texture = cubeTextureLoader.load([
+        skyboxPath + 'px' + skyboxExt, skyboxPath + 'nx' + skyboxExt,
+        skyboxPath + 'py' + skyboxExt, skyboxPath + 'ny' + skyboxExt,
+        skyboxPath + 'pz' + skyboxExt, skyboxPath + 'nz' + skyboxExt,
+    ]);
+    scene.background = texture;
+
+    // ================== NUEVO: CONFIGURAR AGUA ==================
+    waterTexture = textureLoader.load('models/water7.jpg');
+    // Configurar la textura para que se repita
+    waterTexture.wrapS = THREE.RepeatWrapping; // Repetir en horizontal (S)
+    waterTexture.wrapT = THREE.RepeatWrapping; // Repetir en vertical (T)
+    
+    waterMaterial = new THREE.MeshLambertMaterial({ // <-- CAMBIO AQUÍ
+    map: waterTexture, 
+    transparent: true, 
+    opacity: 0.8 // Puedes ajustar la opacidad
+});
+    // ==========================================================
+
+    // ================== FIN DE LA MODIFICACIÓN ==================
 
     if (gameMode === 'local') {
-        // MODO LOCAL: Skybox y pista lineal
-        const skyboxPath = 'skybox/';
-        const skyboxExt = '.png';
-        const cubeTextureLoader = new THREE.CubeTextureLoader();
-        const texture = cubeTextureLoader.load([
-            skyboxPath + 'px' + skyboxExt, skyboxPath + 'nx' + skyboxExt,
-            skyboxPath + 'py' + skyboxExt, skyboxPath + 'ny' + skyboxExt,
-            skyboxPath + 'pz' + skyboxExt, skyboxPath + 'nz' + skyboxExt,
-        ]);
-        scene.background = texture;
+        // MODO LOCAL: Pista lineal
 
         const metaPosition = new THREE.Vector3(0, -40, -distanciaMeta);
         cargarModeloEstatico(mapModelPath, gameMap, new THREE.Vector3(7, 7, 7), metaPosition); //Escala mapa final 
     
+        // --- NUEVO: Crear Suelo de Agua (Local) ---
+        // Un plano MUY largo que cubra toda la pista
+        const waterGeo = new THREE.PlaneGeometry(3000, distanciaMeta + 1000); // Ancho 3000, Largo total
+        // Repetir la textura (ej: 10 veces a lo ancho, y proporcional a lo largo)
+        const repeatX = 10;
+        const repeatY = (distanciaMeta + 1000) / (3000 / repeatX);
+        waterTexture.repeat.set(repeatX, repeatY);
+        waterTexture.needsUpdate = true;
+
+        const waterPlane = new THREE.Mesh(waterGeo, waterMaterial);
+        waterPlane.rotation.x = -Math.PI / 2; // Rotar para que sea un suelo
+        
+        // Posicionar en el fondo, centrado en el recorrido
+        const waterY = LIMITE_Y_NEG - 20; // 20 unidades bajo el límite del jugador
+        waterPlane.position.set(0, waterY, -(distanciaMeta + 500) / 2 + 5); // Centrarlo
+        scene.add(waterPlane);
+
     } else {
         // MODO ONLINE: Cubo de arena y mapa como suelo
-        // NUEVO CAMBIO: Crear la arena
         const arenaSize = 200;
         arenaBounds = new THREE.Vector3(arenaSize/2, arenaSize/2, arenaSize/2);
-        
-        // Usamos un skybox simple para el fondo
-        const skyboxPath = 'skybox/';
-        const skyboxExt = '.png';
-        const cubeTextureLoader = new THREE.CubeTextureLoader();
-        const texture = cubeTextureLoader.load([
-            skyboxPath + 'px' + skyboxExt, skyboxPath + 'nx' + skyboxExt,
-            skyboxPath + 'py' + skyboxExt, skyboxPath + 'ny' + skyboxExt,
-            skyboxPath + 'pz' + skyboxExt, skyboxPath + 'nz' + skyboxExt,
-        ]);
-        scene.background = texture;
-
+    
         // Opcional: añadir un 'suelo' visual o usar el modelo del mapa
         cargarModeloEstatico(
             mapModelPath, 
@@ -246,6 +273,19 @@ function initThree() {
             new THREE.Vector3(7, 7, 7), // Más grande
             new THREE.Vector3(0, -arenaBounds.y + 10, 0) // En el fondo
         );
+
+        // --- NUEVO: Crear Suelo de Agua (Online) ---
+        // Un plano grande que cubra el fondo de la arena
+        const waterGeo = new THREE.PlaneGeometry(arenaBounds.x * 2, arenaBounds.z * 2);
+        // Repetir la textura 10x10 sobre el plano
+        waterTexture.repeat.set(10, 10); 
+        waterTexture.needsUpdate = true;
+
+        const onlineWaterPlane = new THREE.Mesh(waterGeo, waterMaterial);
+        onlineWaterPlane.rotation.x = -Math.PI / 2; // Rotar para que sea un suelo
+        // Posicionar justo en el fondo de la arena
+        onlineWaterPlane.position.y = -arenaBounds.y + 1; // +1 para que esté justo sobre el fondo
+        scene.add(onlineWaterPlane);
 
         // Caja invisible o con wireframe para ver límites
         // const arenaGeo = new THREE.BoxGeometry(arenaSize, arenaSize, arenaSize);
@@ -264,6 +304,10 @@ function initThree() {
 const loadingManager = new THREE.LoadingManager();
 const mtlLoader = new MTLLoader(loadingManager);
 const objLoader = new OBJLoader(loadingManager);
+
+const textureLoader = new THREE.TextureLoader(loadingManager);
+let waterTexture = null;
+let waterMaterial = null;
 
 function Modelos3D(path, nombre, vectorEscala, isLocal = false) { 
     mtlLoader.load(path + '.mtl', function (materials) {
