@@ -18,9 +18,9 @@ function getUrlParameter(name) {
 }
 
 function obtenerRutaModelo(modelIndex) {
-    if (modelIndex === 1) return 'models/AJOLOTE';
-    if (modelIndex === 2) return 'models/AJOLOTE2';
-    return 'models/AJ0LOTE';
+    if (modelIndex === 1) return 'models/AAR';
+    if (modelIndex === 2) return 'models/AAA';
+    return 'models/AAR';
 }
 
 const gameMode = getUrlParameter('modo'); // 'local' o 'online'
